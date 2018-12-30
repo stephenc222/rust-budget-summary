@@ -1,0 +1,7 @@
+[package]
+name = "rust-budget-summary"
+version = "0.1.0"
+authors = ["Stephen Collins <stephenc211@gmail.com>"]
+
+[dependencies]
+csv = "1"
