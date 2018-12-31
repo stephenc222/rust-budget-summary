@@ -5,3 +5,4 @@ authors = ["Stephen Collins <stephenc211@gmail.com>"]
 
 [dependencies]
 csv = "1"
+cargo-watch = "7.0.8"
