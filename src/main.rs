@@ -71,7 +71,7 @@ fn read_budget() -> Result<(), Box<Error>> {
             curr_month += 1;
         }
     }
-    table.add_row(row!["Total Year Change", bFw->year_sum]);
+    table.add_row(row![bfw->"Total Year Change", rbFw->(year_sum * 100.0).round() / 100.0]);
     table.printstd();
     Ok(())
 }
