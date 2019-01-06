@@ -2,11 +2,14 @@ extern crate csv;
 extern crate regex;
 #[macro_use] extern crate prettytable;
 
-use prettytable::Table;
+mod util;
+
+use prettytable::{Row,Table};
 use regex::Regex;
 use std::error::Error;
 use std::path::Path;
 use std::process;
+use util::*;
 
 // returns the month change string to a 64 bit float
 fn month_change_to_float(num_str: String ) -> f64 {
@@ -14,13 +17,6 @@ fn month_change_to_float(num_str: String ) -> f64 {
     return num_val;
 }
 
-fn strip_comma(mut num_str: String) -> String {
-    let comma_pos = num_str.find(',').unwrap_or(0);
-    if comma_pos != 0 {
-        num_str.remove(comma_pos);
-    }
-    return num_str;
-}
 // strip the record, and turn (x) into -x for standardization
 fn clean_month_change(month_str: String) -> String {
     let last: usize = month_str.len() - 1;
@@ -40,9 +36,15 @@ fn clean_month_change(month_str: String) -> String {
     return clean_month_change;
 }
 fn read_budget() -> Result<(), Box<Error>> {
-    let data_path = Path::new("data/actual_2018.csv");
+    let data_path: &Path = Path::new("data/actual_2018.csv");
     let mut table = Table::new();
-    table.add_row(row![bFg->"Month", bFg->"Change from Last Month"]);
+    let header_row: Row = row![bFg->"Month", bFg->"Change from Last Month"];
+    table.add_row(header_row);
+    let mut rdr = csv::ReaderBuilder::new()
+        .has_headers(false)
+        .from_path(data_path)?;
+    let mut curr_month: usize = 0;
+    let mut year_sum: f64 = 0.0;
     let calendar: [String; 12] = [
         "January".to_string(),
         "February".to_string(),
@@ -57,11 +59,7 @@ fn read_budget() -> Result<(), Box<Error>> {
         "November".to_string(),
         "December".to_string(),
     ];
-    let mut rdr = csv::ReaderBuilder::new()
-        .has_headers(false)
-        .from_path(data_path)?;
-    let mut curr_month: usize = 0;
-    let mut year_sum: f64 = 0.0;
+
     for result in rdr.records() {
         let record = result?;
         if record.get(0) == Some("") && record.get(1) != Some("Checking CF") && record.get(1) != Some("") {
@@ -71,7 +69,8 @@ fn read_budget() -> Result<(), Box<Error>> {
             curr_month += 1;
         }
     }
-    table.add_row(row![bfw->"Total Year Change", rbFw->(year_sum * 100.0).round() / 100.0]);
+    let summary_row: Row = row![bfw->"Total Year Change", rbFw->(year_sum * 100.0).round() / 100.0];
+    table.add_row(summary_row);
     table.printstd();
     Ok(())
 }
